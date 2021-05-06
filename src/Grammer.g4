@@ -20,11 +20,11 @@ defineVar2 : 'const' NAME ('=' initial_value)? SEMI;
 defineArray : defineArray1 | defineArray2;
 defineArray1 : 'var' NAME ':' 'new ' 'Array' '['datatype']' BRACIN INT BRACOUT SEMI;
 defineArray2 : 'const' NAME '=' 'Array' BRACIN DATATYPE (','DATATYPE)*BRACOUT SEMI;
-initial_value : DATATYPE | (NAME('.'NAME)*);
+initial_value : opeator;
 
 returnstatement : 'return' (NAME('.'NAME)*)? SEMI;
 statement : ifstatement | forstatement | whilestatement
-            | switchstatement | trystatement | defineVar | returnstatement;
+            | switchstatement | trystatement | defineVar | returnstatement | (initial_value SEMI);
 ifstatement : 'if' BRACIN conditions+ BRACOUT  BRACEIN statement* BRACEOUT
             ('elif' BRACIN conditions+ BRACOUT  BRACEIN statement* BRACEOUT)*
             ('else' BRACIN conditions+ BRACOUT  BRACEIN statement* BRACEOUT)?;
@@ -32,8 +32,8 @@ conditions : ((NAME('.'NAME)*) ('<' | '>' | '>=' | '<=' | '==' | '!=') (NAME('.'
 forstatement : for1 | for2;
 for1 : 'for' BRACIN for1init* SEMI conditions+ SEMI doLine* BRACOUT BRACEIN statement* BRACEOUT;
 for2 : 'for' BRACIN datatype NAME 'in' (NAME('.'NAME)*) BRACOUT BRACEIN statement* BRACEOUT;
-for1init : defineVar ;/*fix this*/
-doLine : 'a++' ; /*fix this*/
+for1init : defineVar | initial_value;
+doLine : opeator ;
 
 trystatement : 'try' BRACEIN statement* BRACEOUT cath+;
 cath : cath1 | cath2 ;
@@ -51,6 +51,20 @@ fun1 :datatype NAME BRACIN (datatype NAME)* BRACOUT
                   BRACEIN statement*BRACEOUT;
 fun2: 'void' NAME BRACIN (datatype NAME)* BRACOUT
                   BRACEIN statement* BRACEOUT;
+opeator : o1;
+o1 : o1 EQUAL o2 | o1 '+=' o2 | o1 '-=' o2 | o1 '*=' o2 | o1 '/=' o2 | o1 '//=' o2 | o1 '%=' o2 | o2 ;
+o2 : o2 'not' o3 | o2 'and' o3 | o2 'or' o3 | o2 '||' o3 | o2 '&&' o3 | o3;
+o3 : o3 '<' o4 | o3 '>' o4 | o3 '<=' o4 | o3 '>=' o4 | o4;
+o4 : o4 '==' o5 | o4 '!=' o5 | o4 '<>' o5 | o5;
+o5 : o5 '&' o6 | o5 '^' o6 | o5 '|' o6 | o6;
+o6 : o6 '<<' o7 | o6 '>>' o7 | o7;
+o7 : o7 SUM o8 | o7 MINUS o8 | o8;
+o8 : o8 MULTI o9 | o8 DIVIDE1 o9 | o8 DIVIDE2 o9 | o8 MOD o9 | o9;
+o9 : '++' o9 | '--' o9 | o9'++' | o9'--'| o10;
+o10 : SUM o10 | MINUS o10 | o11;
+o11 : '~' o11 | o12;
+o12 : '**' o12 | o13;
+o13 : BRACIN o1 BRACOUT | (NAME('.'NAME)*) | DATATYPE;
 
 COMMENT :'/*' .*? '*/'->skip;
 LINECOMMENT :  '//' ~( '\r' | '\n' )*->skip;
@@ -59,12 +73,20 @@ BOOL : 'true' | 'false';
 DIGIT : [0-9];
 INT : DIGIT+;
 DOUBLE : INT+ '.' INT+;
-CHAR : '\'' ~['\\'] '\'';
+CHAR : '\'' ('\\' ["\\] | ~["\\\r\n]) '\'';
 STRING : '"' ('\\' ["\\] | ~["\\\r\n])* '"' ;
 BRACIN : '(';
 BRACOUT : ')';
 SEMI : ';' ;
 BRACEIN : '{';
 BRACEOUT : '}' ;
+SUM : '+';
+MINUS : '-';
+MULTI : '*';
+DIVIDE1 : '/';
+DIVIDE2 : '//';
+EQUAL : '=';
+MOD : '%';
+OPRATOR : SUM | MINUS | MULTI | DIVIDE1 | DIVIDE2 | MOD;
 WS : [ \t\r\n]+ -> skip;
 NAME : [A-za-z$_] ([A-za-z0-9$_])+;

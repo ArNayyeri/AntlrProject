@@ -1,4 +1,5 @@
 parser grammar MyParser;
+
 @header  {
     import java.util.Properties;
     import java.util.Scanner;
@@ -6,14 +7,24 @@ parser grammar MyParser;
 options {
     tokenVocab=MyLexer;
 }
+
 start : library* class+;
 library : lib1 | lib2 | lib3 | lib4;
 lib1 : IMPORT NAME(DOT NAME)* SEMI;
-lib2 : FROM NAME(DOT NAME)* IMPORT NAME(DOT NAME)* ( COMMA  NAME(DOT NAME)*)* SEMI;
+lib2 : FROM NAME(DOT NAME)* IMPORT NAME(DOT NAME)* (COMMA NAME(DOT NAME)*)* SEMI;
 lib3 : FROM NAME(DOT NAME)* IMPORTSTAR SEMI;
 lib4 : FROM NAME(DOT NAME)* IMPORT NAME(DOT NAME)* FLASH NAME SEMI;
 
-datatypes : INT | DOUBLE | CHAR | STRING | BOOL;
+string : S_BRACEIN string BRACEOUT
+    | opeator
+    | DQUOTE stringContents* DQUOTE
+    ;
+
+stringContents : STRINGTYPE
+               | ESCAPEDOLLAR
+               | STARTInterpolation string BRACEOUT;
+
+datatypes : INT | DOUBLE | BOOL | string;
 
 class : Accesslevel? CLASS NAME  extend? impel? BRACEIN classbody* classinit? classbody* BRACEOUT;
 extend : EXTEND NAME;
@@ -28,7 +39,7 @@ defineVar4 : NAME COLON NEW (ARRAY defineArray1 | NAME defineClass);
 defineArray1 : BRACKETIN DATATYPE BRACKETOUT  BRACIN INT BRACOUT SEMI;
 defineVar3 :  NAME EQUAL ARRAY BRACIN datatypes? (COMMA datatypes)* BRACOUT SEMI;
 defineClass : BRACIN (datatypes( COMMA datatypes)*)? BRACOUT SEMI;
-initial_value : opeator | SCI;
+initial_value : opeator | SCI | string;
 
 
 returnstatement : RETURN NAME(DOT NAME)*? SEMI;
@@ -38,8 +49,8 @@ ifstatement : IF BRACIN conditions+ BRACOUT  BRACEIN statement* BRACEOUT
             (ELIF BRACIN conditions+ BRACOUT  BRACEIN statement* BRACEOUT)*
             (ELSE BRACEIN statement* BRACEOUT)?;
 
-functionCall : NAME (DOT NAME BRACIN (datatypes | NAME(DOT NAME)*)? (COMMA (datatypes | NAME(DOT NAME)*))* BRACOUT)+;
-print : PRINT BRACIN STRING BRACOUT;
+functionCall : NAME (DOT NAME BRACIN (datatypes | NAME(DOT NAME)*)? (COMMA (datatypes | NAME(DOT NAME)*))* BRACOUT)+ SEMI;
+print : PRINT BRACIN initial_value BRACOUT SEMI;
 
 conditions : opeator;
 forstatement : for1 | for2;
@@ -89,4 +100,4 @@ o9 : level9 o9 | o9 level9 | o10;
 o10 : level7_10 o10 | o11;
 o11 : level11 o11 | o12;
 o12 : o12 level12 o13 | o13;
-o13 : BRACIN o1 BRACOUT | NAME(DOT NAME)* | datatypes;
+o13 : BRACIN o1 BRACOUT | NAME(DOT NAME)* | INT | DOUBLE | BOOL ;
